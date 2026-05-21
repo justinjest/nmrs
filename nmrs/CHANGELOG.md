@@ -3,6 +3,9 @@
 All notable changes to the `nmrs` crate will be documented in this file.
 
 ## [Unreleased]
+### Fixed
+- Replace futures::executor::block_on with .await in VPN active connection map to prevent panic 
+  when called from an existing async runtime [#423](https://github.com/networkmanager-rs/nmrs/pull/423))
 
 ## [3.1.4] - 2026-05-17
 ### Fixed
