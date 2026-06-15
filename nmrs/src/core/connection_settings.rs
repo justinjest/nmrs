@@ -14,21 +14,13 @@ use crate::api::models::ConnectionError;
 use crate::util::utils::{connection_settings_proxy, settings_proxy};
 use crate::util::validation::validate_connection_name;
 
-/// Finds the D-Bus path of a saved connection by SSID or connection name.
+/// Finds a saved profile whose `connection.id` matches `name` (SSID for typical Wi-Fi).
 ///
-/// Iterates through all saved connections in NetworkManager's settings
-/// and returns the path of the first one whose connection ID matches
-/// the given SSID or name.
-///
-/// Returns `None` if no saved connection exists for this SSID/name.
-pub(crate) async fn get_saved_connection_path(
+/// Returns the D-Bus path and `connection.uuid` of the first match.
+async fn find_saved_connection_by_name(
     conn: &Connection,
     name: &str,
-) -> Result<Option<OwnedObjectPath>> {
-    if should_skip_lookup(name)? {
-        return Ok(None);
-    }
-
+) -> Result<Option<(OwnedObjectPath, String)>> {
     let settings = settings_proxy(conn).await?;
 
     let reply = settings
@@ -57,12 +49,53 @@ pub(crate) async fn get_saved_connection_path(
         if let Some(conn_section) = all.get("connection")
             && let Some(Value::Str(id)) = conn_section.get("id")
             && id == name
+            && let Some(Value::Str(uuid)) = conn_section.get("uuid")
         {
-            return Ok(Some(cpath));
+            return Ok(Some((cpath, uuid.to_string())));
         }
     }
 
     Ok(None)
+}
+
+/// Finds the D-Bus path of a saved connection by SSID or connection name.
+///
+/// Iterates through all saved connections in NetworkManager's settings
+/// and returns the path of the first one whose connection ID matches
+/// the given SSID or name.
+///
+/// Returns `None` if no saved connection exists for this SSID/name.
+pub(crate) async fn get_saved_connection_path(
+    conn: &Connection,
+    name: &str,
+) -> Result<Option<OwnedObjectPath>> {
+    if should_skip_lookup(name)? {
+        return Ok(None);
+    }
+
+    Ok(find_saved_connection_by_name(conn, name)
+        .await?
+        .map(|(path, _)| path))
+}
+
+/// Returns the profile UUID for a saved connection whose `connection.id` matches `name`.
+///
+/// For Wi-Fi profiles created by nmrs, `connection.id` is usually the SSID — the same
+/// string accepted by [`has_saved_connection`](crate::NetworkManager::has_saved_connection)
+/// and [`forget`](crate::NetworkManager::forget).
+///
+/// Returns `None` when no profile matches.
+pub(crate) async fn get_saved_connection_uuid(
+    conn: &Connection,
+    name: &str,
+) -> Result<Option<String>> {
+    if should_skip_lookup(name)? {
+        return Ok(None);
+    }
+
+    Ok(find_saved_connection_by_name(conn, name)
+        .await?
+        .map(|(_, uuid)| uuid))
 }
 
 fn should_skip_lookup(name: &str) -> Result<bool> {

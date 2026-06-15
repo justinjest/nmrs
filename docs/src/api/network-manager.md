@@ -122,6 +122,7 @@ let config = nm.timeout_config();
 | `reload_saved_connections()` | `Result<()>` | Re-read profiles from disk |
 | `has_saved_connection(ssid)` | `Result<bool>` | Check if a Wi-Fi profile exists |
 | `get_saved_connection_path(ssid)` | `Result<Option<OwnedObjectPath>>` | Get profile D-Bus path |
+| `get_saved_connection_uuid(name)` | `Result<Option<String>>` | Get profile UUID by `connection.id` (usually SSID) |
 | `forget(ssid)` | `Result<()>` | Delete a Wi-Fi profile |
 
 ## Monitoring Methods

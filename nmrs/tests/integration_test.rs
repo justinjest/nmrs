@@ -435,7 +435,34 @@ async fn test_get_saved_connection_path() {
         .await
         .expect("Failed to get saved connection path for empty SSID");
     // Result can be Some or None depending on system state
-    assert!(result.is_some() || result.is_none());
+    let _ = result;
+}
+
+/// Test getting the UUID of a saved connection
+#[tokio::test]
+#[serial]
+async fn test_get_saved_connection_uuid() {
+    require_networkmanager!();
+
+    let nm = NetworkManager::new()
+        .await
+        .expect("Failed to create NetworkManager");
+    require_wifi!(&nm);
+
+    let result = nm
+        .get_saved_connection_uuid("__NONEXISTENT_TEST_SSID__")
+        .await
+        .expect("Failed to get saved connection UUID");
+    assert!(
+        result.is_none(),
+        "Non-existent SSID should not have saved connection UUID"
+    );
+
+    let result = nm
+        .get_saved_connection_uuid("")
+        .await
+        .expect("Failed to get saved connection UUID for empty SSID");
+    let _ = result;
 }
 
 /// Test connecting to an open network

@@ -114,6 +114,55 @@ into an existing profile via NM's `Update` / `UpdateUnsaved` methods.
 This is the right call to flip `autoconnect`, change a priority, or
 update DNS without rebuilding the entire profile.
 
+**Important:** the first argument is the profile **UUID** (`connection.uuid`),
+not the Wi-Fi SSID. [`Network`](../api/types.md#network) values from a scan
+do not include the profile UUID — resolve it first.
+
+### Look up UUID by profile name (SSID)
+
+For Wi-Fi profiles, `connection.id` is usually the SSID. The same string
+works with `has_saved_connection`, `forget`, and
+[`get_saved_connection_uuid`](../api/network-manager.md#connection-profile-methods):
+
+```rust
+use nmrs::{NetworkManager, SettingsPatch};
+
+let nm = NetworkManager::new().await?;
+
+if let Some(uuid) = nm.get_saved_connection_uuid("HomeWiFi").await? {
+    let mut patch = SettingsPatch::default();
+    patch.autoconnect = Some(false);
+    nm.update_saved_connection(&uuid, patch).await?;
+}
+```
+
+### Update while listing saved profiles
+
+When iterating [`list_saved_connections`](../api/network-manager.md#connection-profile-methods),
+each [`SavedConnection`](../api/models.md#savedconnection) already carries `uuid`
+and `id`. Match on `id` (or compare against your target SSID) and pass
+**`saved.uuid`** to `update_saved_connection`:
+
+```rust
+use nmrs::{NetworkManager, SettingsPatch};
+
+let nm = NetworkManager::new().await?;
+let target = "HomeWiFi";
+
+for saved in nm.list_saved_connections().await? {
+    if saved.id == target {
+        let mut patch = SettingsPatch::default();
+        patch.autoconnect = Some(!saved.autoconnect);
+        nm.update_saved_connection(&saved.uuid, patch).await?;
+    }
+}
+```
+
+Common mistake: using a scanned [`Network`](../api/types.md#network)'s `ssid`
+where a UUID is required, or calling `update_saved_connection(&network.ssid, …)`.
+There is no `uuid` field on `Network` — use `get_saved_connection_uuid` or
+`SavedConnection::uuid` instead.
+
 ## Deleting by UUID
 
 When the profile UUID is known, you can delete it directly:

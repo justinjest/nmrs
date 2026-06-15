@@ -18,7 +18,9 @@ use crate::core::connection::{
     connect, connect_to_bssid, connect_wired, disconnect, forget_by_name_and_type,
     get_device_by_interface, is_connected,
 };
-use crate::core::connection_settings::{get_saved_connection_path, has_saved_connection};
+use crate::core::connection_settings::{
+    get_saved_connection_path, get_saved_connection_uuid, has_saved_connection,
+};
 use crate::core::device::{
     is_connecting, list_bluetooth_devices, list_devices, wait_for_wifi_ready,
 };
@@ -1170,6 +1172,27 @@ impl NetworkManager {
     }
 
     /// Merges a [`SettingsPatch`] into an existing profile (`Update` / `UpdateUnsaved`).
+    ///
+    /// `uuid` is the profile's `connection.uuid` (see [`SavedConnection::uuid`]), **not**
+    /// the Wi-Fi SSID from a scan [`Network`]. Use [`Self::get_saved_connection_uuid`] or
+    /// [`Self::list_saved_connections`] to resolve the UUID from a profile name / SSID.
+    ///
+    /// # Example
+    ///
+    /// ```no_run
+    /// use nmrs::{NetworkManager, SettingsPatch};
+    ///
+    /// # async fn example() -> nmrs::Result<()> {
+    /// let nm = NetworkManager::new().await?;
+    ///
+    /// if let Some(uuid) = nm.get_saved_connection_uuid("HomeWiFi").await? {
+    ///     let mut patch = SettingsPatch::default();
+    ///     patch.autoconnect = Some(false);
+    ///     nm.update_saved_connection(&uuid, patch).await?;
+    /// }
+    /// # Ok(())
+    /// # }
+    /// ```
     pub async fn update_saved_connection(&self, uuid: &str, patch: SettingsPatch) -> Result<()> {
         saved_profiles::update_saved_connection(&self.conn, uuid, &patch).await
     }
@@ -1227,6 +1250,29 @@ impl NetworkManager {
         ssid: &str,
     ) -> Result<Option<zvariant::OwnedObjectPath>> {
         get_saved_connection_path(&self.conn, ssid).await
+    }
+
+    /// Returns the profile UUID for a saved connection whose `connection.id` matches `name`.
+    ///
+    /// For Wi-Fi profiles, `name` is usually the SSID. Use the returned UUID with
+    /// [`Self::update_saved_connection`] or [`Self::delete_saved_connection`].
+    ///
+    /// # Example
+    ///
+    /// ```no_run
+    /// use nmrs::NetworkManager;
+    ///
+    /// # async fn example() -> nmrs::Result<()> {
+    /// let nm = NetworkManager::new().await?;
+    ///
+    /// if let Some(uuid) = nm.get_saved_connection_uuid("HomeWiFi").await? {
+    ///     println!("Profile UUID: {uuid}");
+    /// }
+    /// # Ok(())
+    /// # }
+    /// ```
+    pub async fn get_saved_connection_uuid(&self, name: &str) -> Result<Option<String>> {
+        get_saved_connection_uuid(&self.conn, name).await
     }
 
     /// Forgets (deletes) a saved WiFi connection for the given SSID.
