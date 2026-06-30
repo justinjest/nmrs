@@ -1,4 +1,4 @@
-# <p align="center"> nmrs 🦀 
+# <p align="center"> nmrs 🦀
 
 [![Crates.io](https://img.shields.io/crates/v/nmrs)](https://crates.io/crates/nmrs)
 [![Discord](https://img.shields.io/badge/chat-on%20discord-7289da?logo=discord&logoColor=white)](https://discord.gg/Sk3VfrHrN4)
@@ -22,6 +22,7 @@ _Please consider joining the [**Discord**](https://discord.gg/Sk3VfrHrN4). It's 
 The best way to get started with `nmrs` is the [User Guide](https://cachebag.github.io/nmrs/), which includes comprehensive tutorials and examples. For detailed API information, see the [API documentation](https://docs.rs/nmrs).
 
 ## Sample usage
+
 We'll create a simple example that scans for available networks and connects to one. Note that these examples require NetworkManager to be running on your Linux system with D-Bus access, obviously.
 
 ### Listing Networks
@@ -34,10 +35,10 @@ use nmrs::NetworkManager;
 #[tokio::main]
 async fn main() -> nmrs::Result<()> {
     let nm = NetworkManager::new().await?;
-    
+
     // Scan for networks
     let networks = nm.list_networks(None).await?;
-    
+
     for net in networks {
         println!(
             "{} - Signal: {}%, Security: {:?}",
@@ -46,7 +47,7 @@ async fn main() -> nmrs::Result<()> {
             net.security
         );
     }
-    
+
     Ok(())
 }
 ```
@@ -61,17 +62,17 @@ use nmrs::{NetworkManager, WifiSecurity};
 #[tokio::main]
 async fn main() -> nmrs::Result<()> {
     let nm = NetworkManager::new().await?;
-    
+
     // Connect to a network
     nm.connect("MyNetwork", None, WifiSecurity::WpaPsk {
         psk: "password123".into()
     }).await?;
-    
+
     // Check current connection
     if let Some(ssid) = nm.current_ssid().await {
         println!("Connected to: {}", ssid);
     }
-    
+
     Ok(())
 }
 ```
@@ -86,7 +87,7 @@ use nmrs::{NetworkManager, WifiSecurity, ConnectionError};
 #[tokio::main]
 async fn main() -> nmrs::Result<()> {
     let nm = NetworkManager::new().await?;
-    
+
     match nm.connect("MyNetwork", None, WifiSecurity::WpaPsk {
         psk: "wrong_password".into()
     }).await {
@@ -96,12 +97,19 @@ async fn main() -> nmrs::Result<()> {
         Err(ConnectionError::Timeout) => eprintln!("Connection timed out"),
         Err(e) => eprintln!("Error: {}", e),
     }
-    
+
     Ok(())
 }
 ```
 
 To follow and/or discuss the development of nmrs, you can join the [public Discord channel](https://discord.gg/Sk3VfrHrN4).
+
+# Some cool projects using nmrs
+
+- [cosmic-applets](https://github.com/pop-os/cosmic-applets) by [@pop-os](https://github.com/pop-os)
+- [nmrs-tui](https://github.com/y2w8/nmrs-tui) by [@y2w8](https://github.com/y2w8)
+- [nmrs-gui](https://github.com/networkmanager-rs/nmrs-gui) by [@networkmanager-rs](https://github.com/networkmanager-rs)
+- [gaypanel](https://codeberg.org/pastthepixels/gaypanel) by [@pastthepixels](https://codeberg.org/pastthepixels)
 
 # Roadmap / Implementation Status
 
@@ -188,12 +196,13 @@ Contributions are welcome. Please read [CONTRIBUTING.md](./CONTRIBUTING.md) for 
 
 This project is dual-licensed under either of the following licenses, at your option:
 
-- MIT License  
+- MIT License
 - Apache License, Version 2.0
 
 You may use, copy, modify, and distribute this software under the terms of either license.
 
 See the following files for full license texts:
+
 - [MIT License](./LICENSE-MIT)
 - [Apache License 2.0](./LICENSE-APACHE)
 

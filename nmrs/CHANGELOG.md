@@ -8,48 +8,68 @@ All notable changes to the `nmrs` crate will be documented in this file.
   name and serves the standard NetworkManager secret-agent object path, so
   credential prompts can reach the registered agent ([#451](https://github.com/networkmanager-rs/nmrs/issues/451))
 
+### Fixed
+
+- `SecretAgent` now registers without owning a policy-controlled system bus name and serves the standard NetworkManager secret-agent object path, so credential prompts can reach the registered agent. ([#452](https://github.com/networkmanager-rs/nmrs/pull/452))
+
 ## [3.2.1] - 2026-06-16
+
 ### Added
+
 - `NetworkManager::get_saved_connection_uuid()` — resolve a profile UUID from `connection.id` (usually the Wi-Fi SSID) for use with `update_saved_connection` ([#442](https://github.com/networkmanager-rs/nmrs/issues/442))
 - `DeviceState::is_enabled()`, `Device.frequency`, and `WifiDevice.active_frequency_mhz` expose device usability and active Wi-Fi AP frequency without requiring separate AP lookups ([#445](https://github.com/networkmanager-rs/nmrs/pull/445))
 
 ### Fixed
+
 - `NetworkManager::update_saved_connection()` now merges `SettingsPatch` into the full existing settings map before calling NetworkManager `Update`, avoiding missing required fields such as `connection.type` ([#446](https://github.com/networkmanager-rs/nmrs/pull/446))
 
 ## [3.2.0] - 2026-05-31
+
 ### Added
+
 - Add EAP-TLS support for WPA-Enterprise Wi-Fi, including TLS certificate/key path or blob configuration on `EapOptions` and `EapMethod::Tls` ([#434](https://github.com/networkmanager-rs/nmrs/pull/434))
 - Add WPA3-Enterprise 192-bit Wi-Fi support via `WifiSecurity::Wpa3Eap192bit` and `WifiConnectionBuilder::wpa3_eap_192_bit()` ([#434](https://github.com/networkmanager-rs/nmrs/pull/434))
 - Add race-free `try_connect` and `try_connect_to_bssid` APIs for `NetworkManager` and `WifiScope`, plus `ConnectionError::ConnectionInProgress` ([#427](https://github.com/networkmanager-rs/nmrs/pull/427))
 
 ### Changed
+
 - Send EAP certificate and private-key file paths to NetworkManager as NUL-terminated byte arrays, matching NetworkManager's D-Bus settings format ([#434](https://github.com/networkmanager-rs/nmrs/pull/434))
 
 ### Fixed
+
 - Guard connect operations with async mutex to prevent TOCTOU race between `is_connecting()` and `connect()` ([#427](https://github.com/networkmanager-rs/nmrs/pull/427))
 - Make `EapOptionsBuilder::build()` reject EAP-TLS configs missing a private key or client certificate ([#436](https://github.com/networkmanager-rs/nmrs/pull/436))
 - Switch saved connection lookup to use `validate_connection_name()` instead of `validate_ssid()`, allowing VPN profile names longer than Wi-Fi SSIDs ([#426](https://github.com/networkmanager-rs/nmrs/pull/426))
 
 ## [3.1.5] - 2026-05-20
+
 ### Fixed
-- Replace futures::executor::block_on with .await in VPN active connection map to prevent panic 
+
+- Replace futures::executor::block_on with .await in VPN active connection map to prevent panic
   when called from an existing async runtime [#423](https://github.com/networkmanager-rs/nmrs/pull/423))
 
 ## [3.1.4] - 2026-05-17
+
 ### Fixed
+
 - WireGuard builder now sets `service-type` property correctly ([#421](https://github.com/networkmanager-rs/nmrs/pull/421))
 
 ## [3.1.3] - 2026-05-14
+
 ### Fixed
+
 - Add `process` feature to tokio to fix build error on some systems
 
 (No changes documented)
 
 ## [3.1.2] - 2026-05-14
+
 - `set_bluetooth_radio_enabled` now toggles kernel rfkill before BlueZ adapter `Powered`, fixing airplane-mode state desync with rfkill-based consumers ([#417](https://github.com/networkmanager-rs/nmrs/issues/418))
 
 ## [3.1.1] - 2026-05-13
+
 ### Fixed
+
 - `set_airplane_mode` now treats `BluetoothToggleFailed` as a non-fatal
   warning (like missing BlueZ) when the aggregate airplane toggle has already
   toggled Wi-Fi/WWAN successfully. This avoids reporting total failure after
@@ -59,16 +79,19 @@ All notable changes to the `nmrs` crate will be documented in this file.
   `BluetoothToggleFailed`. ([#417](https://github.com/networkmanager-rs/nmrs/issues/417))
 
 ## [3.1.0] - 2026-05-08
+
 - Implement loopback support ([#391](https://github.com/networkmanager-rs/nmrs/issues/391))
 - Implement add VLAN (802.1Q) device support with VlanConfig model and connection builder([#392](https://github.com/networkmanager-rs/nmrs/issues/392))
 
 ### Added
+
 - `RadioState::present` indicates whether a controllable instance of the radio
   exists on the host. `RadioState::with_presence(enabled, hardware_enabled,
-  present)` constructor; `RadioState::new` keeps existing behavior and defaults
+present)` constructor; `RadioState::new` keeps existing behavior and defaults
   `present = true`. ([#396](https://github.com/networkmanager-rs/nmrs/issues/396))
 
 ### Fixed
+
 - `NetworkManager::wifi_state` and `wwan_state` now set `RadioState::present`
   from NetworkManager device enumeration (with `present = true` when
   enumeration is incomplete), instead of always reporting present. ([#396](https://github.com/cachebag/nmrs/pull/396))
@@ -85,11 +108,15 @@ All notable changes to the `nmrs` crate will be documented in this file.
   and concludes that airplane mode failed to engage. ([#396](https://github.com/cachebag/nmrs/pull/396))
 
 ## [3.0.1] - 2026-04-25
+
 ### Changed
+
 - Lower MSRV from 1.94.0 to 1.90.0
 
 ## [3.0.0] - 2026-04-24
+
 ### Added
+
 - `ConnectionError::IncompleteBuilder` for builders missing required fields ([#350](https://github.com/cachebag/nmrs/issues/350))
 - `nmrs::agent` module: NetworkManager secret agent for credential prompting over D-Bus (`SecretAgent`, `SecretAgentBuilder`, `SecretAgentHandle`, `SecretRequest`, `SecretResponder`, `SecretSetting`, `SecretAgentFlags`, `SecretAgentCapabilities`, `CancelReason`, `SecretStoreEvent`) ([#370](https://github.com/cachebag/nmrs/pull/370))
 - `AccessPoint` model preserving per-AP BSSID, frequency, security flags, and device state; `list_access_points(interface)` for full AP enumeration ([#373](https://github.com/cachebag/nmrs/pull/373))
@@ -103,6 +130,7 @@ All notable changes to the `nmrs` crate will be documented in this file.
 - Generic VPN support: `VpnType` now carries protocol-specific metadata for OpenVPN, OpenConnect, strongSwan, PPTP, L2TP, and a `Generic` catch-all; `VpnKind` (Plugin vs WireGuard); `VpnConnection` enriched with `uuid`, `active`, `user_name`, `password_flags`, `service_type`; `connect_vpn_by_uuid()`, `connect_vpn_by_id()`, `disconnect_vpn_by_uuid()`, `active_vpn_connections()` ([#378](https://github.com/cachebag/nmrs/pull/378))
 
 ### Changed
+
 - `VpnCredentialsBuilder::build()` and `EapOptionsBuilder::build()` return `Result` (no panics on missing fields); `VpnCredentialsBuilder` may return `ConnectionError::InvalidPeers` when no peers are set ([#350](https://github.com/cachebag/nmrs/issues/350))
 - `VpnType` is now a data-carrying enum; the old tag enum is renamed to `VpnKind`. `VpnConfig::vpn_type()` renamed to `vpn_kind()`. `VpnConnectionInfo.vpn_type` renamed to `vpn_kind`. ([#378](https://github.com/cachebag/nmrs/pull/378))
 - `list_saved_connections()` now returns `Vec<SavedConnection>` (full decode + summaries). Use `list_saved_connection_ids()` for the previous `Vec<String>` behavior (connection `id` names only). ([#376](https://github.com/cachebag/nmrs/pull/376))
@@ -119,42 +147,56 @@ All notable changes to the `nmrs` crate will be documented in this file.
 - Support for specifying Bluetooth adapter in `BluetoothIdentity` ([#267](https://github.com/cachebag/nmrs/pull/267))
 
 ### Fixed
+
 - Wi-Fi `ensure_disconnected` no longer deactivates every active connection (VPN, wired, other radios); only the target Wi-Fi device is torn down. VPN disconnect, Wi-Fi/Bluetooth `Device::Disconnect` D-Bus failures propagate instead of being swallowed ([#351](https://github.com/cachebag/nmrs/issues/351))
 - OpenVPN settings decoding now uses D-Bus `Dict` values for `vpn.data` / `vpn.secrets` and extracts gateways from `vpn.data` correctly ([#337](https://github.com/cachebag/nmrs/pull/337), [#344](https://github.com/cachebag/nmrs/pull/344))
 - Line-accurate source locations for `.ovpn` directives and blocks ([#318](https://github.com/cachebag/nmrs/pull/318))
 - `key_direction` when nested under `tls_auth` and as a standalone directive ([#320](https://github.com/cachebag/nmrs/pull/320))
 
 ## [2.4.0] - 2026-04-24
+
 ### Fixed
+
 - `list_networks` fills `device`, `ip4_address`, and `ip6_address` for the access point currently in use on each Wi-Fi interface ([#368](https://github.com/cachebag/nmrs/pull/368))
 - `monitor_network_changes` now fires for Wi-Fi access point signal strength changes, not only access point additions and removals ([#367](https://github.com/cachebag/nmrs/pull/367))
 - Add `Send` bound to monitoring stream trait objects so `monitor_network_changes` and `monitor_device_changes` work with `tokio::spawn` ([#359](https://github.com/cachebag/nmrs/pull/359))
 
 ## [2.3.0] - 2026-04-10
+
 ### Added
-- `is_hotspot` method for networks in AP mode 3 ([#324](https://github.com/cachebag/nmrs/pull/324)) 
+
+- `is_hotspot` method for networks in AP mode 3 ([#324](https://github.com/cachebag/nmrs/pull/324))
 
 ### Fixed
+
 - Add `Send` bound to `for_each_access_point` callback future ([#330](https://github.com/cachebag/nmrs/pull/330))
 - Removed stale `nmrs-aur` submodule gitlink ([#331](https://github.com/cachebag/nmrs/pull/331))
 
 ## [2.2.0] - 2026-03-17
+
 ### Added
+
 - Concurrency protection ([#268](https://github.com/cachebag/nmrs/pull/268))
 - Expose `WirelessHardwareEnabled` in API to reflect rkfill state ([#284](https://github.com/cachebag/nmrs/pull/284))
 
 ### Changed
+
 - Convert BDADDR to BlueZ device path via `bluez_device_path` helper ([#266](https://github.com/cachebag/nmrs/pull/266))
 
 ### Fixed
+
 - Let NetworkManager negotiate mixed-mode (WPA1+WPA2) security ([#271](https://github.com/cachebag/nmrs/pull/271))
 
 ## [2.1.0] - 2026-02-28
+
 ### Added
+
 - `#[must_use]` attributes across public API: constructors, builder methods, and pure functions ([#220](https://github.com/cachebag/nmrs/issues/220))
 
 ## [2.0.1] - 2026-02-25
+
 ### Changed
+
 - Completed IPv6 support ([#208](https://github.com/cachebag/nmrs/pull/208))
 - Replace magic number with named constant for device states ([#230](https://github.com/cachebag/nmrs/pull/230))
 - Replaced hardcoded root paths with `Default` impl ([#224](https://github.com/cachebag/nmrs/pull/224))
@@ -163,37 +205,47 @@ All notable changes to the `nmrs` crate will be documented in this file.
 - Idempotence enforcement for `forget_vpn()` ([#232](https://github.com/cachebag/nmrs/pull/232))
 
 ### Added
+
 - validate bluetooth address in `populate_bluez_info` & `BluetoothIdentity::new` ([#215](https://github.com/cachebag/nmrs/issues/215))
 - `WifiMode` enum for WiFi connection mode ([#263](https://github.com/cachebag/nmrs/issues/263))
 
 ## [2.0.0] - 2026-01-19
+
 ### Added
+
 - Configurable timeout values for connection and disconnection operations ([#185](https://github.com/cachebag/nmrs/issues/185))
 - Builder pattern for `VpnCredentials` and `EapOptions` ([#188](https://github.com/cachebag/nmrs/issues/188))
 - Bluetooth device support ([#198](https://github.com/cachebag/nmrs/pull/198))
 - Input validation before any D-Bus operations ([#173](https://github.com/cachebag/nmrs/pull/173))
-~~- CI: adjust workflow to auto-update nix hashes on PRs ([#182](https://github.com/cachebag/nmrs/pull/182))~~
-- More helpful methods to `network_manager` facade ([#190](https://github.com/cachebag/nmrs/pull/190)) 
+  ~~- CI: adjust workflow to auto-update nix hashes on PRs ([#182](https://github.com/cachebag/nmrs/pull/182))~~
+- More helpful methods to `network_manager` facade ([#190](https://github.com/cachebag/nmrs/pull/190))
 - Explicitly clean up signal streams to ensure unsubscription ([#197](https://github.com/cachebag/nmrs/pull/197))
 
 ### Fixed
+
 - Better error message for empty passkeys ([#198](https://github.com/cachebag/nmrs/pull/198))
 - Race condition in signal subscription ([#191](https://github.com/cachebag/nmrs/pull/191))
 
 ### Changed
+
 - Various enums and structs marked non-exhaustive ([#198](https://github.com/cachebag/nmrs/pull/198))
 - Expose `NMWiredProxy` and propogate speed through + write in field and display for BT device type ([#198](https://github.com/cachebag/nmrs/pull/198))
 
 ## [1.3.5] - 2026-01-13
+
 ### Changed
+
 - Add `Debug` derive to `NetworkManager` ([#171](https://github.com/cachebag/nmrs/pull/171))
 
 ## [1.3.0] - 2026-01-12
+
 ### Changed
+
 - Dedupe DBus proxy construction across connection logic ([#165](https://github.com/cachebag/nmrs/pull/165))
 - Added contextual logging throughout VPN, connection, and device operations to preserve error context and improve debugging capabilities ([#168](https://github.com/cachebag/nmrs/pull/168))
 
 ### Fixed
+
 - VPN operations no longer silently swallow D-Bus errors - now log warnings when proxy creation or method calls fail ([#168](https://github.com/cachebag/nmrs/pull/168))
 - Connection cleanup operations (disconnect, deactivate, delete) now log failures instead of ignoring them ([#168](https://github.com/cachebag/nmrs/pull/168))
 - VPN error mapping now attempts to extract actual connection state reasons instead of defaulting to `Unknown` ([#168](http://github.com/cachebag/nmrs/pull/168))
@@ -201,46 +253,57 @@ All notable changes to the `nmrs` crate will be documented in this file.
 - Access point property retrieval failures are now logged for better diagnostics ([#168](https://github.com/cachebag/nmrs/pull/168))
 
 ## [1.2.0] - 2026-01-05
+
 ### Added
+
 - Docker image for reproducing testing/dev environment ([#159](https://github.com/cachebag/nmrs/pull/159))
 
 ### Fixed
+
 - Change `decode_ssid_or_empty` to return a borrowed slice instead of `String` ([#154](https://github.com/cachebag/nmrs/pull/154))
 
 ### Changed
+
 - Condense device finding logic under one helper: `find_device_by_type` ([#158](https://github.com/cachebag/nmrs/pull/158))
 
 ## [1.1.0] - 2025-12-19
 
 ### Fixed
+
 - Native WireGuard profile structure ([#135](https://github.com/cachebag/nmrs/issues/135))
 
 ### Added
+
 - Added WireGuard connection example to docs ([#137](https://github.com/cachebag/nmrs/pull/137))
 
 ## [1.0.1] - 2025-12-15
 
 ### Changed
+
 - Update docs for various structs, enums and functions ([#132](https://github.com/cachebag/nmrs/pull/132))
 
 ## [1.0.0] - 2025-12-15
 
 ### Added
+
 - Full WireGuard VPN support ([#92](https://github.com/cachebag/nmrs/issues/92))
 
 ## [0.5.0-beta] - 2025-12-15
 
 ### Changed
+
 - Refactored connection monitoring from polling to event-driven D-Bus signals for faster response times and lower CPU usage ([#46](https://github.com/cachebag/nmrs/issues/46))
 - Replaced `tokio` with `futures-timer` for runtime-agnostic async support (fixes GTK/glib compatibility)
 
 ### Added
+
 - `ActiveConnectionState` and `ConnectionStateReason` enums for detailed connection status tracking ([#46](https://github.com/cachebag/nmrs/issues/46))
 - `monitor_network_changes()` API for real-time network list updates via D-Bus signals
 - `NetworkManager` is now `Clone`
 - Full support for Ethernet devices ([#88](https://github.com/cachebag/nmrs/issues/88))
 
 ### Fixed
+
 - `forget()` now verifies device is disconnected before deleting saved connections ([#124](https://github.com/cachebag/nmrs/issues/124))
 - `list_networks()` preserves security flags when deduplicating APs ([#123](https://github.com/cachebag/nmrs/issues/123))
 - Fixed race condition in signal subscription where rapid state changes could be missed
@@ -248,16 +311,19 @@ All notable changes to the `nmrs` crate will be documented in this file.
 ## [0.4.0-beta] - 2025-12-11
 
 ### Breaking Changes
+
 - Expanded `ConnectionError` enum with new variants (`AuthFailed`, `SupplicantConfigFailed`, `SupplicantTimeout`, `DhcpFailed`, `Timeout`, `Stuck`, `NoWifiDevice`, `WifiNotReady`, `NoSavedConnection`, `Failed(StateReason)`) - exhaustive matches will need a wildcard ([#82](https://github.com/cachebag/nmrs/issues/82))
 - Return types changed from `zbus::Result<T>` to `Result<T, ConnectionError>` for structured error handling
 - Renamed crate from `nmrs-core` to `nmrs`
 
 ### Added
+
 - `StateReason` enum and `reason_to_error()` for mapping NetworkManager failure codes to typed errors ([#82](https://github.com/cachebag/nmrs/issues/82), [#85](https://github.com/cachebag/nmrs/issues/85))
 - Comprehensive documentation across all modules ([#82](https://github.com/cachebag/nmrs/issues/82))
 - Logging support via `log` crate facade ([#87](https://github.com/cachebag/nmrs/issues/87))
 
 ### Changed
+
 - Decomposed `connect()` into smaller helper functions ([#81](https://github.com/cachebag/nmrs/issues/81))
 - Extracted disconnect + wait logic to unified helper ([#79](https://github.com/cachebag/nmrs/issues/79))
 - Unified state polling logic ([#80](https://github.com/cachebag/nmrs/issues/80))
@@ -265,17 +331,20 @@ All notable changes to the `nmrs` crate will be documented in this file.
 - Replaced `eprintln!` with structured logging (`debug!`, `info!`, `warn!`, `error!`) ([#87](https://github.com/cachebag/nmrs/issues/87))
 
 ### Fixed
+
 - Auth error mapping now properly distinguishes supplicant failures, DHCP errors, and timeouts ([#82](https://github.com/cachebag/nmrs/issues/82), [#85](https://github.com/cachebag/nmrs/issues/85), [#116](https://github.com/cachebag/nmrs/issues/116))
 - `bitrate` property now fetches real connection speeds ([#110](https://github.com/cachebag/nmrs/issues/110))
 
 ## [0.3.0-beta] - 2025-12-08
 
 ### Added
+
 - CI: Automated release workflow ([#105](https://github.com/cachebag/nmrs/pull/105))
 
 ## [0.2.0-beta] - 2025-12-03
 
 ### Added
+
 - CI: Nix derivation test ([#57](https://github.com/cachebag/nmrs/pull/57))
 - Prevent multiple instances from running by introducing a file lock ([#65](https://github.com/cachebag/nmrs/pull/65))
 - CI+tests: Cross platform builds, API testing, unit testing and integration testing ([#95](https://github.com/cachebag/nmrs/pull/96))
@@ -284,11 +353,13 @@ All notable changes to the `nmrs` crate will be documented in this file.
 ## [0.1.1-beta] - 2025-11-21
 
 ### Added
+
 - Added GNOME/GTK dependencies to `flake.nix` for NixOS development ([#53](https://github.com/cachebag/nmrs/pull/53))
 
 ## [0.1.0-beta] - 2025-11-20
 
 ### Added
+
 - Initial BETA release of nmrs core library
 - WPA/WPA2 network connection support
 - EAP connections (initial support)
@@ -299,12 +370,14 @@ All notable changes to the `nmrs` crate will be documented in this file.
 - Initial model/builder tests ([#48](https://github.com/cachebag/nmrs/pull/48))
 
 ### Fixed
+
 - Network connection failure states with better error handling ([#52](https://github.com/cachebag/nmrs/pull/52))
 - Network deduplication
 - DBus API mismatches ([#49](https://github.com/cachebag/nmrs/pull/49))
 - Saved connections handling
 
 ### Known Issues
+
 - EAP connections default to no certificates (advanced certificate management coming in future releases)
 
 [1.2.0]: https://github.com/cachebag/nmrs/compare/nmrs-v1.1.0...nmrs-v1.2.0
