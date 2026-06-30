@@ -90,7 +90,7 @@ most commonly handled variants by category.
 |---------|-------------|
 | `AgentRegistration { context }` | Secret agent failed to register with NM |
 | `AgentNotRegistered` | Used a handle whose registration was already torn down |
-| `AgentAlreadyRegistered` | Identifier collision with another agent in this process |
+| `AgentAlreadyRegistered` | Secret agent registration conflict |
 
 ### Low-Level Errors
 
