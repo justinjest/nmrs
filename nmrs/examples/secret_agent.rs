@@ -1,5 +1,6 @@
-/// Registers a NetworkManager secret agent, prints incoming requests,
-/// and responds to Wi-Fi PSK prompts by reading a password from stdin.
+/// Registers a long-lived NetworkManager secret agent, prints incoming
+/// requests, and responds to Wi-Fi PSK prompts by reading a password from
+/// stdin.
 ///
 /// Run with:
 ///
@@ -8,7 +9,7 @@
 /// ```
 ///
 /// Then trigger a password prompt (e.g. forget a saved Wi-Fi password and
-/// reconnect). The agent will print the request and ask for input.
+/// reconnect). The agent will print each request and ask for input.
 use std::io::{self, BufRead, Write};
 
 use futures::StreamExt;
@@ -22,9 +23,10 @@ async fn main() -> nmrs::Result<()> {
         .await?;
 
     println!("Secret agent registered. Waiting for requests…");
-    println!("(The agent will exit after processing one request)\n");
+    println!("Keep this process running while NetworkManager may need secrets.");
+    println!("After a NetworkManager restart, call SecretAgentHandle::reregister().\n");
 
-    if let Some(req) = requests.next().await {
+    while let Some(req) = requests.next().await {
         println!("── Secret request ──");
         println!("  UUID:    {}", req.connection_uuid);
         println!("  Name:    {}", req.connection_id);
@@ -61,6 +63,6 @@ async fn main() -> nmrs::Result<()> {
     }
 
     handle.unregister().await?;
-    println!("Agent unregistered.");
+    println!("Request stream closed; agent unregistered.");
     Ok(())
 }

@@ -105,6 +105,7 @@ let config = nm.timeout_config();
 | `list_devices()` | `Result<Vec<Device>>` | List all network devices |
 | `list_wireless_devices()` | `Result<Vec<Device>>` | List Wi-Fi devices |
 | `list_wired_devices()` | `Result<Vec<Device>>` | List Ethernet devices |
+| `list_wired_device_details()` | `Result<Vec<WiredDevice>>` | List Ethernet devices with link speed, active connection id, and IPs |
 | `get_device_by_interface(name)` | `Result<OwnedObjectPath>` | Find device by interface name |
 | `is_connecting()` | `Result<bool>` | Check if any device is connecting |
 

@@ -53,11 +53,57 @@
 //! well-known name. The agent object is served at NetworkManager's standard
 //! `/org/freedesktop/NetworkManager/SecretAgent` path by default.
 //!
+//! GUI apps should register one long-lived agent during application or applet
+//! startup and keep the returned [`SecretAgentHandle`](crate::agent::SecretAgentHandle)
+//! alive for the process lifetime. Dropping or unregistering the handle tears
+//! down the registration and closes the request stream.
+//!
 //! If NetworkManager restarts while the agent is running, call
 //! [`SecretAgentHandle::reregister()`](crate::agent::SecretAgentHandle::reregister)
-//! to re-register.
+//! after detecting that NetworkManager is available again.
 //!
 //! # Example
+//!
+//! ```no_run
+//! use futures::StreamExt;
+//! use nmrs::agent::{SecretAgent, SecretAgentFlags, SecretSetting};
+//!
+//! # async fn run() -> nmrs::Result<()> {
+//! let (handle, mut requests) = SecretAgent::builder()
+//!     .with_identifier("com.example.demo")
+//!     .register()
+//!     .await?;
+//!
+//! let request_task = tokio::spawn(async move {
+//!     while let Some(req) = requests.next().await {
+//!         if !req.flags.contains(SecretAgentFlags::ALLOW_INTERACTION) {
+//!             req.responder.no_secrets().await?;
+//!             continue;
+//!         }
+//!
+//!         match req.setting {
+//!             SecretSetting::WifiPsk { ref ssid } => {
+//!                 println!("Password needed for {ssid}");
+//!                 req.responder.wifi_psk("secret").await?;
+//!             }
+//!             _ => req.responder.cancel().await?,
+//!         }
+//!     }
+//!
+//!     Ok::<(), nmrs::ConnectionError>(())
+//! });
+//!
+//! // Keep `handle` alive for as long as the app should answer prompts.
+//! // After a NetworkManager restart, call:
+//! // handle.reregister().await?;
+//!
+//! request_task.abort();
+//! handle.unregister().await?;
+//! # Ok(())
+//! # }
+//! ```
+//!
+//! A foreground loop works too:
 //!
 //! ```no_run
 //! use futures::StreamExt;

@@ -8,11 +8,16 @@ use log::{debug, warn};
 use zbus::Connection;
 
 use crate::Result;
-use crate::api::models::{BluetoothDevice, ConnectionError, Device, DeviceIdentity, DeviceState};
+use crate::api::models::{
+    BluetoothDevice, ConnectionError, Device, DeviceIdentity, DeviceState, WiredDevice,
+};
 use crate::core::bluetooth::populate_bluez_info;
 use crate::core::connection::get_device_by_interface;
 use crate::core::state_wait::wait_for_wifi_device_ready;
-use crate::dbus::{NMAccessPointProxy, NMBluetoothProxy, NMDeviceProxy, NMProxy, NMWirelessProxy};
+use crate::dbus::{
+    NMAccessPointProxy, NMActiveConnectionProxy, NMBluetoothProxy, NMDeviceProxy, NMProxy,
+    NMWiredProxy, NMWirelessProxy,
+};
 use crate::types::constants::device_type;
 use crate::util::utils::get_ip_addresses_from_active_connection;
 
@@ -141,9 +146,7 @@ pub(crate) async fn list_devices(conn: &Connection) -> Result<Vec<Device>> {
                 (None, None)
             };
 
-        // Avoiding this breaking change for now
-        // Get link speed for wired devices
-        /* let speed = if raw_type == device_type::ETHERNET {
+        let speed_mbps = if raw_type == device_type::ETHERNET {
             async {
                 let wired = NMWiredProxy::builder(conn).path(p.clone())?.build().await?;
                 wired.speed().await
@@ -152,7 +155,8 @@ pub(crate) async fn list_devices(conn: &Connection) -> Result<Vec<Device>> {
             .ok()
         } else {
             None
-        };*/
+        };
+
         devices.push(Device {
             path: p.to_string(),
             interface,
@@ -164,9 +168,97 @@ pub(crate) async fn list_devices(conn: &Connection) -> Result<Vec<Device>> {
             ip4_address,
             ip6_address,
             frequency,
-            // speed,
+            speed_mbps,
         });
     }
+    Ok(devices)
+}
+
+/// Lists wired Ethernet devices with Ethernet-specific details.
+pub(crate) async fn list_wired_device_details(conn: &Connection) -> Result<Vec<WiredDevice>> {
+    let proxy = NMProxy::new(conn).await?;
+    let paths = proxy
+        .get_devices()
+        .await
+        .map_err(|e| ConnectionError::DbusOperation {
+            context: "failed to get device paths from NetworkManager".to_string(),
+            source: e,
+        })?;
+
+    let mut devices = Vec::new();
+    for p in paths {
+        let d_proxy = NMDeviceProxy::builder(conn)
+            .path(p.clone())?
+            .build()
+            .await?;
+
+        if d_proxy.device_type().await? != device_type::ETHERNET {
+            continue;
+        }
+
+        let interface = d_proxy
+            .interface()
+            .await
+            .map_err(|e| ConnectionError::DbusOperation {
+                context: format!("failed to get interface name for device {}", p.as_str()),
+                source: e,
+            })?;
+        // Some virtual or unusual devices omit HwAddress; keep the row usable.
+        let hw_address = d_proxy
+            .hw_address()
+            .await
+            .unwrap_or_else(|_| String::from("00:00:00:00:00:00"));
+        let permanent_hw_address = d_proxy
+            .perm_hw_address()
+            .await
+            .ok()
+            .filter(|addr| !addr.is_empty());
+        let state = d_proxy.state().await?.into();
+
+        let speed_mbps = async {
+            let wired = NMWiredProxy::builder(conn).path(p.clone())?.build().await?;
+            wired.speed().await
+        }
+        .await
+        .ok();
+
+        let active_conn_path = d_proxy.active_connection().await.ok();
+        let active_connection_id = match active_conn_path.as_ref() {
+            Some(path) if path.as_str() != "/" => {
+                async {
+                    let active = NMActiveConnectionProxy::builder(conn)
+                        .path(path.clone())
+                        .ok()?
+                        .build()
+                        .await
+                        .ok()?;
+                    active.id().await.ok()
+                }
+                .await
+            }
+            _ => None,
+        };
+
+        let (ip4_address, ip6_address) = match active_conn_path.as_ref() {
+            Some(path) if path.as_str() != "/" => {
+                get_ip_addresses_from_active_connection(conn, path).await
+            }
+            _ => (None, None),
+        };
+
+        devices.push(WiredDevice {
+            path: p.to_string(),
+            interface,
+            hw_address,
+            permanent_hw_address,
+            speed_mbps,
+            active_connection_id,
+            state,
+            ip4_address,
+            ip6_address,
+        });
+    }
+
     Ok(devices)
 }
 

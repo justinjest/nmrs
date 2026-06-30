@@ -35,6 +35,11 @@ Each device provides the following information:
 | `driver` | `Option<String>` | Kernel driver name |
 | `ip4_address` | `Option<String>` | IPv4 address with CIDR (when connected) |
 | `ip6_address` | `Option<String>` | IPv6 address with CIDR (when connected) |
+| `frequency` | `Option<u32>` | Active Wi-Fi frequency in MHz (Wi-Fi only) |
+| `speed_mbps` | `Option<u32>` | Raw Ethernet link speed in Mb/s (Ethernet only) |
+
+`speed_mbps` preserves NetworkManager's raw value. Some Ethernet drivers
+report `0` when no carrier is present.
 
 ## Device Types
 
@@ -88,6 +93,25 @@ dt.requires_specific_object();  // true for Wifi, WifiP2P
 dt.has_global_enabled_state();  // true for Wifi
 dt.connection_type_str();       // "802-11-wireless", "802-3-ethernet", etc.
 dt.to_code();                   // raw NM type code (2 for Wifi, 1 for Ethernet)
+```
+
+## Wired Details
+
+For Ethernet-specific UI rows, use `list_wired_device_details()` instead of
+falling back to raw D-Bus:
+
+```rust
+use nmrs::NetworkManager;
+
+let nm = NetworkManager::new().await?;
+
+for device in nm.list_wired_device_details().await? {
+    println!("{} {:?}", device.interface, device.state);
+    println!("  MAC: {}", device.hw_address);
+    println!("  speed: {:?}", device.speed_mbps);
+    println!("  connection: {:?}", device.active_connection_id);
+    println!("  IPv4: {:?}", device.ip4_address);
+}
 ```
 
 ## Device States

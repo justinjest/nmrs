@@ -19,6 +19,8 @@ pub struct Device {
     pub driver: Option<String>,
     pub ip4_address: Option<String>,
     pub ip6_address: Option<String>,
+    pub frequency: Option<u32>,       // active Wi-Fi frequency in MHz
+    pub speed_mbps: Option<u32>,      // Ethernet link speed in Mb/s
 }
 ```
 
@@ -122,6 +124,25 @@ pub struct WifiDevice {
     pub autoconnect: bool,
     pub is_active: bool,
     pub active_ssid: Option<String>,
+    pub active_frequency_mhz: Option<u32>,
+}
+```
+
+### WiredDevice
+
+An Ethernet device discovered by `list_wired_device_details()`.
+
+```rust
+pub struct WiredDevice {
+    pub path: String,
+    pub interface: String,                  // e.g. "eth0"
+    pub hw_address: String,                 // current MAC
+    pub permanent_hw_address: Option<String>,
+    pub speed_mbps: Option<u32>,            // raw NM link speed, may be 0
+    pub active_connection_id: Option<String>,
+    pub state: DeviceState,
+    pub ip4_address: Option<String>,
+    pub ip6_address: Option<String>,
 }
 ```
 

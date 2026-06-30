@@ -92,6 +92,12 @@ most commonly handled variants by category.
 | `AgentNotRegistered` | Used a handle whose registration was already torn down |
 | `AgentAlreadyRegistered` | Secret agent registration conflict |
 
+For applet-style GUI code, register one secret agent during startup and keep
+the returned `SecretAgentHandle` alive for the application lifetime. If
+NetworkManager restarts, call `SecretAgentHandle::reregister()` after it is
+available again. Dropping or unregistering the handle stops credential prompts
+from reaching the app.
+
 ### Low-Level Errors
 
 | Variant | Description |

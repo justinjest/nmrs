@@ -9,7 +9,7 @@ use crate::Result;
 use crate::api::models::access_point::AccessPoint;
 use crate::api::models::{
     AirplaneModeState, Device, Network, NetworkInfo, RadioState, SavedConnection,
-    SavedConnectionBrief, SettingsPatch, WifiDevice, WifiSecurity,
+    SavedConnectionBrief, SettingsPatch, WifiDevice, WifiSecurity, WiredDevice,
 };
 use crate::api::wifi_scope::WifiScope;
 use crate::core::airplane;
@@ -22,7 +22,8 @@ use crate::core::connection_settings::{
     get_saved_connection_path, get_saved_connection_uuid, has_saved_connection,
 };
 use crate::core::device::{
-    is_connecting, list_bluetooth_devices, list_devices, wait_for_wifi_ready,
+    is_connecting, list_bluetooth_devices, list_devices, list_wired_device_details,
+    wait_for_wifi_ready,
 };
 use crate::core::saved_connection as saved_profiles;
 use crate::core::scan::{current_network, list_access_points, list_networks, scan_networks};
@@ -245,6 +246,15 @@ impl NetworkManager {
     pub async fn list_wired_devices(&self) -> Result<Vec<Device>> {
         let devices = list_devices(&self.conn).await?;
         Ok(devices.into_iter().filter(|d| d.is_wired()).collect())
+    }
+
+    /// List wired (Ethernet) devices with Ethernet-specific details.
+    ///
+    /// Each [`WiredDevice`] includes the interface name, current and permanent
+    /// MAC addresses, raw NetworkManager link speed, active connection id, and
+    /// assigned IP addresses when connected.
+    pub async fn list_wired_device_details(&self) -> Result<Vec<WiredDevice>> {
+        list_wired_device_details(&self.conn).await
     }
 
     /// Lists all visible Wi-Fi networks.
