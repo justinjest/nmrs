@@ -49,6 +49,10 @@
 //!         └── handle.unregister().await?
 //! ```
 //!
+//! The identifier is only passed to NetworkManager; it is not a D-Bus
+//! well-known name. The agent object is served at NetworkManager's standard
+//! `/org/freedesktop/NetworkManager/SecretAgent` path by default.
+//!
 //! If NetworkManager restarts while the agent is running, call
 //! [`SecretAgentHandle::reregister()`](crate::agent::SecretAgentHandle::reregister)
 //! to re-register.

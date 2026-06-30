@@ -14,7 +14,7 @@ use super::iface::SecretAgentInterface;
 use super::request::{CancelReason, SecretAgentCapabilities, SecretRequest, SecretStoreEvent};
 
 const DEFAULT_IDENTIFIER: &str = "com.system76.CosmicApplets.nmrs.secret_agent";
-const DEFAULT_OBJECT_PATH: &str = "/com/system76/CosmicApplets/nmrs/SecretAgent";
+const DEFAULT_OBJECT_PATH: &str = "/org/freedesktop/NetworkManager/SecretAgent";
 const DEFAULT_QUEUE_DEPTH: usize = 32;
 
 /// Entry point for creating a NetworkManager secret agent.
@@ -65,7 +65,7 @@ impl SecretAgent {
 /// |---------|---------|
 /// | identifier | `com.system76.CosmicApplets.nmrs.secret_agent` |
 /// | capabilities | [`SecretAgentCapabilities::VPN_HINTS`] |
-/// | object path | `/com/system76/CosmicApplets/nmrs/SecretAgent` |
+/// | object path | `/org/freedesktop/NetworkManager/SecretAgent` |
 /// | queue depth | 32 |
 #[derive(Debug)]
 pub struct SecretAgentBuilder {
@@ -87,11 +87,12 @@ impl Default for SecretAgentBuilder {
 }
 
 impl SecretAgentBuilder {
-    /// Sets the D-Bus well-known name the agent will own.
+    /// Sets the identifier passed to NetworkManager for this agent.
     ///
-    /// This must be unique on the system bus. If another process already owns
-    /// the name, registration will fail with
-    /// [`ConnectionError::AgentAlreadyRegistered`].
+    /// This is not a D-Bus bus name and `nmrs` will not try to own it on the
+    /// system bus. NetworkManager requires it to be unique within the user's
+    /// agent session and to follow D-Bus bus-name formatting rules, except
+    /// that `:` is not allowed.
     #[must_use]
     pub fn with_identifier(mut self, identifier: impl Into<String>) -> Self {
         self.identifier = identifier.into();
@@ -108,6 +109,10 @@ impl SecretAgentBuilder {
     }
 
     /// Sets the D-Bus object path where the agent interface is served.
+    ///
+    /// NetworkManager calls secret agents at
+    /// `/org/freedesktop/NetworkManager/SecretAgent`; overriding this is only
+    /// useful for tests or custom callers that use the same non-standard path.
     #[must_use]
     pub fn with_object_path(mut self, path: impl Into<String>) -> Self {
         self.object_path = path.into();
@@ -131,10 +136,8 @@ impl SecretAgentBuilder {
     ///
     /// # Errors
     ///
-    /// - [`ConnectionError::AgentAlreadyRegistered`] if another process
-    ///   already owns the requested bus name.
-    /// - [`ConnectionError::AgentRegistration`] if the bus name could not
-    ///   be acquired or NetworkManager rejected the registration.
+    /// - [`ConnectionError::AgentRegistration`] if NetworkManager rejected
+    ///   the registration.
     /// - [`ConnectionError::Dbus`] for other D-Bus failures.
     pub async fn register(
         self,
@@ -165,14 +168,8 @@ impl SecretAgentBuilder {
                 source: e,
             })?;
 
-        conn.request_name(&*self.identifier).await.map_err(|e| {
-            ConnectionError::AgentRegistration {
-                context: format!("bus name '{}': {e}", self.identifier),
-            }
-        })?;
-
         debug!(
-            "Acquired bus name '{}', serving at '{}'",
+            "Serving secret agent '{}' at '{}'",
             self.identifier, self.object_path
         );
 
@@ -260,7 +257,7 @@ impl SecretAgentHandle {
         Ok(())
     }
 
-    /// Unregisters the agent from NetworkManager and releases the bus name.
+    /// Unregisters the agent from NetworkManager.
     ///
     /// After this call, the request stream returned by
     /// [`SecretAgentBuilder::register`] will complete.
@@ -280,13 +277,6 @@ impl SecretAgentHandle {
             .await
             .map_err(|e| ConnectionError::DbusOperation {
                 context: "unregistering secret agent".into(),
-                source: e,
-            })?;
-        self.conn
-            .release_name(&*self.identifier)
-            .await
-            .map_err(|e| ConnectionError::DbusOperation {
-                context: format!("releasing bus name '{}'", self.identifier),
                 source: e,
             })?;
         debug!("Unregistered secret agent '{}'", self.identifier);
@@ -318,5 +308,24 @@ impl SecretAgentHandle {
     /// always acknowledges them immediately.
     pub fn store_events(&mut self) -> &mut mpsc::UnboundedReceiver<SecretStoreEvent> {
         &mut self.store_rx
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn defaults_match_networkmanager_secret_agent_contract() {
+        let builder = SecretAgentBuilder::default();
+
+        assert_eq!(
+            builder.object_path,
+            "/org/freedesktop/NetworkManager/SecretAgent"
+        );
+        assert_eq!(
+            builder.identifier,
+            "com.system76.CosmicApplets.nmrs.secret_agent"
+        );
     }
 }

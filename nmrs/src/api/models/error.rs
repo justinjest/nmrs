@@ -207,8 +207,8 @@ pub enum ConnectionError {
     #[error("secret agent not registered")]
     AgentNotRegistered,
 
-    /// A secret agent is already registered under this identifier.
-    #[error("secret agent already registered under this identifier")]
+    /// A secret agent registration conflicts with another registered agent.
+    #[error("secret agent registration conflict")]
     AgentAlreadyRegistered,
 
     /// An error occurred while parsing a configuration.

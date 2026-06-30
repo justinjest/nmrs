@@ -3,6 +3,10 @@
 All notable changes to the `nmrs` crate will be documented in this file.
 
 ## [Unreleased]
+### Fixed
+- `SecretAgent` now registers without owning a policy-controlled system bus
+  name and serves the standard NetworkManager secret-agent object path, so
+  credential prompts can reach the registered agent ([#451](https://github.com/networkmanager-rs/nmrs/issues/451))
 
 ## [3.2.1] - 2026-06-16
 ### Added

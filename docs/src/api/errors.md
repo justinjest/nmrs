@@ -140,7 +140,7 @@ These come from the [`agent`](../../agent/index.html) module:
 |-------|---------|
 | `AgentRegistration { context }` | `register()` failed (e.g. NetworkManager not reachable) |
 | `AgentNotRegistered` | Tried to use a handle whose registration was already torn down |
-| `AgentAlreadyRegistered` | Another `nmrs` agent in the process is using the same identifier |
+| `AgentAlreadyRegistered` | Another secret agent registration conflicts with this one |
 
 ## StateReason
 
