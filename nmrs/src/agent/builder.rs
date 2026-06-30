@@ -211,6 +211,10 @@ impl SecretAgentBuilder {
 ///
 /// Provides methods to re-register after a NetworkManager restart, access
 /// the cancellation and store-event streams, and shut the agent down.
+///
+/// GUI apps should keep this handle alive for as long as they want to answer
+/// NetworkManager credential prompts. Dropping the handle drops the D-Bus
+/// connection that serves the secret-agent object.
 pub struct SecretAgentHandle {
     conn: Connection,
     identifier: String,
@@ -234,7 +238,8 @@ impl SecretAgentHandle {
     ///
     /// Call this after detecting that NetworkManager restarted (e.g. its
     /// D-Bus name owner changed). The call is idempotent while the bus
-    /// connection is healthy.
+    /// connection is healthy. The same long-lived handle can be kept for the
+    /// process lifetime and re-registered whenever NetworkManager comes back.
     ///
     /// # Errors
     ///

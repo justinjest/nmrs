@@ -61,8 +61,11 @@ pub struct Device {
     pub ip6_address: Option<String>,
     /// Operating frequency in MHz for the active Wi-Fi connection, if known.
     pub frequency: Option<u32>,
-    // Link speed in Mb/s (wired devices)
-    // pub speed: Option<u32>,
+    /// Link speed in megabits per second for Ethernet devices, if known.
+    ///
+    /// This is the raw value reported by NetworkManager. Some drivers report
+    /// `0` when no carrier is present.
+    pub speed_mbps: Option<u32>,
 }
 
 /// A Wi-Fi device summary returned by
@@ -98,6 +101,38 @@ pub struct WifiDevice {
     pub active_ssid: Option<String>,
     /// Operating frequency in MHz of the currently active AP, if any.
     pub active_frequency_mhz: Option<u32>,
+}
+
+/// A wired Ethernet device summary returned by
+/// [`list_wired_device_details`](crate::NetworkManager::list_wired_device_details).
+///
+/// Use this when Ethernet-specific details such as link speed, hardware
+/// address, or active connection id are needed without falling back to raw
+/// D-Bus calls.
+#[non_exhaustive]
+#[derive(Debug, Clone)]
+pub struct WiredDevice {
+    /// D-Bus object path of the device.
+    pub path: String,
+    /// Interface name (e.g. `"eth0"`).
+    pub interface: String,
+    /// Current MAC address.
+    pub hw_address: String,
+    /// Permanent (factory-burned) MAC, if NM exposes it.
+    pub permanent_hw_address: Option<String>,
+    /// Link speed in megabits per second, if NM exposes it.
+    ///
+    /// This is the raw NetworkManager value. Some drivers report `0` when no
+    /// carrier is present.
+    pub speed_mbps: Option<u32>,
+    /// Active connection profile id, if this device is connected.
+    pub active_connection_id: Option<String>,
+    /// Current device state.
+    pub state: DeviceState,
+    /// Assigned IPv4 address with CIDR notation, if connected.
+    pub ip4_address: Option<String>,
+    /// Assigned IPv6 address with CIDR notation, if connected.
+    pub ip6_address: Option<String>,
 }
 
 /// Represents the hardware identity of a network device.

@@ -4,8 +4,19 @@ All notable changes to the `nmrs` crate will be documented in this file.
 
 ## [Unreleased]
 
+### Added
+
+- `Device::speed_mbps` and `NetworkManager::list_wired_device_details()` expose
+  Ethernet link speed, active connection id, MAC addresses, state, and IPs for
+  wired-device UI rows. ([#454](https://github.com/networkmanager-rs/nmrs/pull/454))
+- Secret-agent lifecycle docs now recommend one long-lived applet registration,
+  keeping `SecretAgentHandle` alive, and calling
+  `SecretAgentHandle::reregister()` after NetworkManager restarts. ([#454](https://github.com/networkmanager-rs/nmrs/pull/454))
+
 ## [3.2.2] - 2026-06-30
+
 ### Fixed
+
 - `SecretAgent` now registers without owning a policy-controlled system bus
   name and serves the standard NetworkManager secret-agent object path, so
   credential prompts can reach the registered agent ([#451](https://github.com/networkmanager-rs/nmrs/issues/451))

@@ -360,6 +360,7 @@ pub mod builders {
 /// - [`AccessPoint`] — Per-BSSID access point details
 /// - [`NetworkInfo`] — Detailed network information returned by `show_details`
 /// - [`WifiDevice`] — Wi-Fi-specific device summary
+/// - [`WiredDevice`] — Ethernet-specific device summary
 /// - [`BluetoothDevice`] — Discovered Bluetooth peer
 /// - [`SavedConnection`] / [`SavedConnectionBrief`] — Saved profile snapshots
 /// - [`SettingsSummary`] / [`SettingsPatch`] — Decoded NM settings & update patches
@@ -416,7 +417,7 @@ pub use api::models::{
     SavedConnectionBrief, SecurityFeatures, SettingsPatch, SettingsSummary, StateReason,
     TimeoutConfig, VlanConfig, VpnConfig, VpnConfiguration, VpnConnection, VpnConnectionInfo,
     VpnCredentials, VpnDetails, VpnKind, VpnRoute, VpnSecretFlags, VpnType, WifiDevice,
-    WifiKeyMgmt, WifiSecurity, WifiSecuritySummary, WireGuardConfig, WireGuardPeer,
+    WifiKeyMgmt, WifiSecurity, WifiSecuritySummary, WireGuardConfig, WireGuardPeer, WiredDevice,
     connection_state_reason_to_error, reason_to_error,
 };
 pub use api::network_manager::NetworkManager;

@@ -604,11 +604,54 @@ fn test_device_is_bluetooth() {
         ip4_address: None,
         ip6_address: None,
         frequency: None,
+        speed_mbps: None,
     };
 
     assert!(bt_device.is_bluetooth());
     assert!(!bt_device.is_wireless());
     assert!(!bt_device.is_wired());
+}
+
+#[test]
+fn test_device_wired_speed_construction() {
+    let device = Device {
+        path: "/org/freedesktop/NetworkManager/Devices/2".into(),
+        interface: "eth0".into(),
+        identity: DeviceIdentity::new("00:11:22:33:44:55".into(), "00:11:22:33:44:55".into()),
+        device_type: DeviceType::Ethernet,
+        state: DeviceState::Activated,
+        managed: Some(true),
+        driver: Some("e1000e".into()),
+        ip4_address: Some("192.0.2.10/24".into()),
+        ip6_address: None,
+        frequency: None,
+        speed_mbps: Some(1000),
+    };
+
+    assert!(device.is_wired());
+    assert_eq!(device.speed_mbps, Some(1000));
+}
+
+#[test]
+fn test_wired_device_construction() {
+    let device = WiredDevice {
+        path: "/org/freedesktop/NetworkManager/Devices/2".into(),
+        interface: "eth0".into(),
+        hw_address: "00:11:22:33:44:55".into(),
+        permanent_hw_address: Some("00:11:22:33:44:55".into()),
+        speed_mbps: Some(0),
+        active_connection_id: Some("Wired connection 1".into()),
+        state: DeviceState::Disconnected,
+        ip4_address: None,
+        ip6_address: None,
+    };
+
+    assert_eq!(device.interface, "eth0");
+    assert_eq!(device.speed_mbps, Some(0));
+    assert_eq!(
+        device.active_connection_id.as_deref(),
+        Some("Wired connection 1")
+    );
 }
 
 #[test]

@@ -70,6 +70,43 @@ nm.connect("HomeWiFi", None, WifiSecurity::WpaPsk {
 nm.connect("HomeWiFi", None, WifiSecurity::Open).await?;
 ```
 
+If a saved profile is missing or has stale secrets, NetworkManager may ask a
+registered secret agent for credentials during activation. GUI apps should
+register one long-lived agent at startup, keep the returned handle alive for
+the process lifetime, and re-register after NetworkManager restarts:
+
+```rust
+use futures::StreamExt;
+use nmrs::agent::{SecretAgent, SecretAgentFlags, SecretSetting};
+
+let (handle, mut requests) = SecretAgent::builder()
+    .with_identifier("com.system76.CosmicAppletNetwork")
+    .register()
+    .await?;
+
+tokio::spawn(async move {
+    while let Some(request) = requests.next().await {
+        if !request.flags.contains(SecretAgentFlags::ALLOW_INTERACTION) {
+            let _ = request.responder.no_secrets().await;
+            continue;
+        }
+
+        match request.setting {
+            SecretSetting::WifiPsk { ref ssid } => {
+                println!("prompt for password: {ssid}");
+                let _ = request.responder.cancel().await;
+            }
+            _ => {
+                let _ = request.responder.cancel().await;
+            }
+        }
+    }
+});
+
+// Keep `handle` alive while the applet is running.
+// Call `handle.reregister().await?` after NetworkManager restarts.
+```
+
 ## Forgetting (Deleting) Connections
 
 ### Wi-Fi Connections

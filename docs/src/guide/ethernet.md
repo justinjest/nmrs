@@ -43,11 +43,42 @@ async fn main() -> nmrs::Result<()> {
         if let Some(driver) = &device.driver {
             println!("  Driver: {}", driver);
         }
+        if let Some(speed) = device.speed_mbps {
+            println!("  Speed: {} Mb/s", speed);
+        }
     }
 
     Ok(())
 }
 ```
+
+For Ethernet-specific rows, `list_wired_device_details()` includes the raw
+NetworkManager link speed, active connection id, MAC addresses, state, and IP
+addresses:
+
+```rust
+use nmrs::NetworkManager;
+
+#[tokio::main]
+async fn main() -> nmrs::Result<()> {
+    let nm = NetworkManager::new().await?;
+
+    for device in nm.list_wired_device_details().await? {
+        println!("{} [{:?}]", device.interface, device.state);
+        println!("  MAC: {}", device.hw_address);
+        println!("  permanent MAC: {:?}", device.permanent_hw_address);
+        println!("  speed: {:?} Mb/s", device.speed_mbps);
+        println!("  active profile: {:?}", device.active_connection_id);
+        println!("  IPv4: {:?}", device.ip4_address);
+        println!("  IPv6: {:?}", device.ip6_address);
+    }
+
+    Ok(())
+}
+```
+
+`speed_mbps` preserves NetworkManager's raw value. Some drivers report `0`
+when no carrier is present.
 
 ## Errors
 
