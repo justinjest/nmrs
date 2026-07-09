@@ -370,6 +370,15 @@ mod tests {
     }
 
     #[test]
+    fn ap_mode_display() {
+        assert_eq!(ApMode::Adhoc.to_string(), "Ad-Hoc");
+        assert_eq!(ApMode::Infrastructure.to_string(), "Infrastructure");
+        assert_eq!(ApMode::Ap.to_string(), "AP");
+        assert_eq!(ApMode::Mesh.to_string(), "Mesh");
+        assert_eq!(ApMode::Unknown(42).to_string(), "Unknown(42)");
+    }
+
+    #[test]
     fn connect_type_display() {
         assert_eq!(ConnectType::Open.to_string(), "Open");
         assert_eq!(ConnectType::Psk.to_string(), "PSK");
