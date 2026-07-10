@@ -106,6 +106,7 @@ To follow and/or discuss the development of nmrs, you can join the [public Disco
 
 # Some cool projects using nmrs
 
+- [cosmic-settings](https://github.com/pop-os/cosmic-settings) by [@pop-os](https://github.com/pop-os)
 - [cosmic-applets](https://github.com/pop-os/cosmic-applets) by [@pop-os](https://github.com/pop-os)
 - [nmrs-tui](https://github.com/y2w8/nmrs-tui) by [@y2w8](https://github.com/y2w8)
 - [gaypanel](https://codeberg.org/pastthepixels/gaypanel) by [@pastthepixels](https://codeberg.org/pastthepixels)
