@@ -54,16 +54,16 @@ When multiple saved connections are available (e.g., you're in range of both "Ho
 | Priority | Use Case |
 |----------|----------|
 | 0 (default) | Normal connections |
-| 1–10 | Preferred connections |
-| -1 to -10 | Fallback connections |
+| Positive (`> 0`) | Preferred connections (higher values take precedence, e.g., `100` over `10`) |
+| Negative (`< 0`) | Fallback connections (lower values are tried last, e.g., `-50` after `-10`) |
 
 ## How Retries Work
 
 `autoconnect_retries` limits how many times NetworkManager will try to auto-connect a failing connection:
 
-- `None` (default) — unlimited retries
-- `Some(0)` — never auto-retry
-- `Some(3)` — try up to 3 times, then stop
+- `None` (default) — Uses NetworkManager's global default configuration (4 attempts).
+- `Some(0)` — Explicitly forces **unlimited** retry attempts.
+- `Some(n)` — Stops attempting to auto-connect after exactly `n` failed retries.
 
 This is useful for connections that might intermittently fail (e.g., a network at the edge of range).
 

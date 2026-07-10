@@ -149,8 +149,8 @@ for net in networks {
 use nmrs::ConnectionOptions;
 
 let opts = ConnectionOptions::new(true)   // autoconnect
-    .with_priority(10)                    // higher = preferred
-    .with_retries(3);                     // 0 means never retry, None = unlimited
+    .with_priority(10)                    // higher = preferred, supports negative fallback values
+    .with_retries(3);                     // Some(n) = retry n times, Some(0) = unlimited, None = default (usually 4 attempts)
 ```
 
 This struct intentionally only covers the connection-management knobs

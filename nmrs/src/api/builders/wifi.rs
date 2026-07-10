@@ -412,4 +412,84 @@ mod tests {
         let ssid = wireless.get("ssid").unwrap();
         assert_eq!(ssid, &Value::from("Café-Wïfì_123".as_bytes().to_vec()));
     }
+
+    #[test]
+    fn connection_with_negative_priority_and_zero_retries() {
+        let opts = ConnectionOptions {
+            autoconnect: true,
+            autoconnect_priority: Some(-5),
+            autoconnect_retries: Some(0), // 0 means try indefinitely in NM
+        };
+
+        let conn = build_wifi_connection("fallback_net", &WifiSecurity::Open, &opts);
+        let connection_section = conn.get("connection").unwrap();
+
+        assert_eq!(
+            connection_section.get("autoconnect-priority"),
+            Some(&Value::from(-5i32))
+        );
+        assert_eq!(
+            connection_section.get("autoconnect-retries"),
+            Some(&Value::from(0i32))
+        );
+    }
+
+    #[test]
+    fn connection_with_max_priority_values() {
+        let opts = ConnectionOptions {
+            autoconnect: true,
+            autoconnect_priority: Some(i32::MAX),
+            autoconnect_retries: Some(i32::MAX),
+        };
+
+        let conn = build_wifi_connection("max_priority_net", &WifiSecurity::Open, &opts);
+        let connection_section = conn.get("connection").unwrap();
+
+        assert_eq!(
+            connection_section.get("autoconnect-priority"),
+            Some(&Value::from(i32::MAX))
+        );
+        assert_eq!(
+            connection_section.get("autoconnect-retries"),
+            Some(&Value::from(i32::MAX))
+        );
+    }
+
+    #[test]
+    fn connection_with_min_priority_and_retries() {
+        let opts = ConnectionOptions {
+            autoconnect: true,
+            autoconnect_priority: Some(i32::MIN),
+            autoconnect_retries: Some(i32::MIN),
+        };
+
+        let conn = build_wifi_connection("min_values_net", &WifiSecurity::Open, &opts);
+        let connection_section = conn.get("connection").unwrap();
+
+        assert_eq!(
+            connection_section.get("autoconnect-priority"),
+            Some(&Value::from(i32::MIN))
+        );
+        assert_eq!(
+            connection_section.get("autoconnect-retries"),
+            Some(&Value::from(i32::MIN))
+        );
+    }
+
+    #[test]
+    fn connection_with_explicit_negative_retries() {
+        let opts = ConnectionOptions {
+            autoconnect: true,
+            autoconnect_priority: None,
+            autoconnect_retries: Some(-1), // NM explicitly treats -1 as "use global default"
+        };
+
+        let conn = build_wifi_connection("default_retries_net", &WifiSecurity::Open, &opts);
+        let connection_section = conn.get("connection").unwrap();
+
+        assert_eq!(
+            connection_section.get("autoconnect-retries"),
+            Some(&Value::from(-1i32))
+        );
+    }
 }

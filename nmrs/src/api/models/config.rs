@@ -126,14 +126,31 @@ impl TimeoutConfig {
 /// // Manual connection only
 /// let opts_manual = ConnectionOptions::new(false);
 /// ```
+
 #[non_exhaustive]
 #[derive(Debug, Clone)]
 pub struct ConnectionOptions {
-    /// Whether to automatically connect when available
+    /// Whether to automatically connect when available.
     pub autoconnect: bool,
-    /// Priority for auto-connection (higher = more preferred)
+
+    /// Priority for auto-connection (higher = more preferred).
+    ///
+    /// NetworkManager uses this value to determine which network to prefer when
+    /// multiple configured networks are available at the same time.
+    ///
+    /// - **Higher values** have higher priority.
+    /// - **Default value** is `0` (if set to `None`).
+    /// - **Negative values** are allowed and indicate lower priority than default.
     pub autoconnect_priority: Option<i32>,
-    /// Maximum number of auto-connect retry attempts
+
+    /// Maximum number of auto-connect retry attempts.
+    ///
+    /// Configures how many times NetworkManager will attempt to automatically
+    /// reconnect if activation fails.
+    ///
+    /// - `Some(0)`: try indefinitely.
+    /// - `Some(n)`: retry up to `n` times.
+    /// - `None`: uses NetworkManager's global default configuration (4 attempts).
     pub autoconnect_retries: Option<i32>,
 }
 
