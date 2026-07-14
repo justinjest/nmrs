@@ -185,7 +185,7 @@ Monitor network changes:
 
 ```rust
 use nmrs::NetworkManager;
-use std::{sync::Arc, time::Duration};
+use std::sync::Arc;
 
 #[tokio::main]
 async fn main() -> nmrs::Result<()> {
