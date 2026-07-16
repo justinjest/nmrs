@@ -188,12 +188,13 @@ impl NetworkSnapshot {
         }
     }
 
+    /// Returns individually reported APs whose raw SSID is empty.
     #[must_use]
     pub fn hidden_access_points(&self) -> Vec<AccessPoint> {
         self.access_points
-            .clone()
-            .into_iter()
-            .filter(|x| x.is_hidden())
+            .iter()
+            .filter(|access_point| access_point.is_hidden())
+            .cloned()
             .collect()
     }
 }
@@ -425,6 +426,12 @@ mod tests {
             is_active: false,
             device_state: DeviceState::Disconnected,
         }
+    }
+
+    fn hidden_ap(interface: &str, bssid: &str, strength: u8) -> AccessPoint {
+        let mut access_point = ap(interface, "<Hidden Network>", bssid, strength);
+        access_point.ssid_bytes.clear();
+        access_point
     }
 
     fn saved_wifi(
@@ -685,7 +692,7 @@ mod tests {
     fn hidden_networks_not_shown() {
         let snapshot = snapshot(
             vec![
-                ap("wlan0", "", "AA:AA:AA:AA:AA:01", 70),
+                hidden_ap("wlan0", "AA:AA:AA:AA:AA:01", 70),
                 ap("wlan1", "Cafe", "BB:BB:BB:BB:BB:01", 90),
             ],
             Vec::new(),
@@ -700,17 +707,19 @@ mod tests {
     fn hidden_networks_available() {
         let snapshot = snapshot(
             vec![
-                ap("wlan0", "", "AA:AA:AA:AA:AA:01", 70),
+                hidden_ap("wlan0", "AA:AA:AA:AA:AA:01", 70),
                 ap("wlan1", "Cafe", "BB:BB:BB:BB:BB:01", 90),
             ],
             Vec::new(),
             Vec::new(),
             Vec::new(),
         );
-        let empty_groups: Vec<AccessPoint> = snapshot.hidden_access_points();
+        let hidden_access_points = snapshot.hidden_access_points();
         let groups = snapshot.wifi_groups();
         assert_eq!(groups.len(), 1);
         assert_eq!(groups[0].ssid, "Cafe");
-        assert_eq!(empty_groups.len(), 1);
+        assert_eq!(hidden_access_points.len(), 1);
+        assert!(hidden_access_points[0].is_hidden());
+        assert_eq!(hidden_access_points[0].ssid, "<Hidden Network>");
     }
 }

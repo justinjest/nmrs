@@ -26,7 +26,7 @@ pub struct AccessPoint {
     pub device_path: OwnedObjectPath,
     /// Interface name of the device (e.g. `"wlan0"`).
     pub interface: String,
-    /// SSID decoded as UTF-8, or `"<hidden>"` for hidden networks.
+    /// SSID decoded as UTF-8, or `"<Hidden Network>"` for hidden networks.
     pub ssid: String,
     /// Raw SSID bytes for non-UTF-8 SSIDs.
     pub ssid_bytes: Vec<u8>,
@@ -51,6 +51,8 @@ pub struct AccessPoint {
 }
 
 impl AccessPoint {
+    /// Returns `true` when NetworkManager did not report an SSID for this AP.
+    #[must_use]
     pub fn is_hidden(&self) -> bool {
         self.ssid_bytes.is_empty()
     }
